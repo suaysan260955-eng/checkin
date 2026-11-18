@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1F4E78">
+<title>รายงานเช็คอิน</title>
+<meta name="apple-mobile-web-app-title" content="รายงานเช็คอิน">
+<link rel="apple-touch-icon" id="ati" href="icon-admin-180.png">
+<link rel="icon" id="fav" sizes="192x192" href="icon-admin-192.png">
+<!--
+  หน้าเปิดแอป (ระบบเช็คอินเข้าสอน วิทยาลัยสหวิทยาการ เกาะสมุย)
+  มีไว้เพื่อให้ไอคอนบนหน้าจอมือถือเป็นรูปของระบบ แล้วพาไปยังเว็บแอป Google Apps Script ทันที
+  ลิงก์ติดตั้ง:  index.html?u=<URL เว็บแอป /exec>&t=<โทเคน>&setup=1   (เพิ่ม &a=1 สำหรับลิงก์รายงาน/ผู้ดูแล)
+  ไอคอนบนหน้าจอเปิด: index.html?u=...&t=...  -> ไปที่ <URL เว็บแอป>?t=<โทเคน>
+  ไม่มีการเก็บหรือส่งข้อมูลใดๆ ไปที่อื่น
+-->
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Sarabun','Segoe UI',Tahoma,sans-serif; background:#F4F6F9; color:#1F2937; }
+  .top { background:linear-gradient(135deg,#1F4E78,#2E75B6); color:#fff; padding:36px 20px 64px; text-align:center; }
+  .top img { width:96px; height:96px; border-radius:22px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  .top h1 { font-size:22px; margin:14px 0 4px; }
+  .top p { margin:0; opacity:.9; }
+  .card { background:#fff; border-radius:16px; margin:-40px 16px 16px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,.08); max-width:520px; }
+  @media (min-width:560px) { .card { margin-left:auto; margin-right:auto; } }
+  h2 { font-size:18px; margin:0 0 10px; color:#1F4E78; }
+  ol { padding-left:22px; margin:0; } li { margin:10px 0; line-height:1.5; }
+  .k { display:inline-block; background:#EEF5FC; color:#1F4E78; border-radius:8px; padding:1px 8px; font-weight:700; }
+  .note { background:#FFF4E5; color:#8A5200; border-radius:10px; padding:10px 12px; margin-top:12px; font-size:15px; line-height:1.5; }
+  .btn { display:block; text-align:center; text-decoration:none; background:#1F4E78; color:#fff; font-weight:700; font-size:17px; border-radius:12px; padding:14px; margin-top:16px; }
+  .err { background:#FDE8E8; color:#C00000; border-radius:10px; padding:12px; }
+  .muted { color:#6B7280; font-size:14px; text-align:center; margin:8px 16px 24px; }
+  .hide { display:none; }
+</style>
+</head>
+<body>
+<div class="top">
+  <img id="logo" src="icon-admin-180.png" alt="">
+  <h1 id="ttl">ระบบเช็คอินเข้าสอน</h1>
+  <p>วิทยาลัยสหวิทยาการ เกาะสมุย</p>
+</div>
+
+<div class="card" id="go"><h2>กำลังเปิดระบบ…</h2><a class="btn" id="goBtn" href="#">แตะที่นี่ ถ้าระบบไม่เปิดเอง</a></div>
+
+<div class="card hide" id="setup">
+  <h2>📲 ติดตั้งไอคอนบนหน้าจอมือถือ</h2>
+  <div id="inApp" class="note hide">ตอนนี้เปิดอยู่ในแอป LINE / Messenger ซึ่งติดตั้งไอคอนไม่ได้<br>แตะ <b>⋯</b> หรือ <b>⋮</b> มุมขวา แล้วเลือก <b>เปิดใน Safari / เปิดในเบราว์เซอร์</b> ก่อน</div>
+  <ol id="ios" class="hide">
+    <li>แตะปุ่มแชร์ <span class="k">⬆️</span> (สี่เหลี่ยมมีลูกศรขึ้น) ด้านล่างหรือด้านบนของ Safari</li>
+    <li>เลื่อนลง แล้วเลือก <span class="k">เพิ่มไปยังหน้าจอโฮม</span></li>
+    <li>แตะ <span class="k">เพิ่ม</span> — ไอคอนจะอยู่บนหน้าจอ แตะเมื่อไรก็เข้าระบบได้ทันที</li>
+  </ol>
+  <ol id="android" class="hide">
+    <li>แตะ <span class="k">⋮</span> มุมขวาบนของ Chrome</li>
+    <li>เลือก <span class="k">เพิ่มลงในหน้าจอหลัก</span> (หรือ "ติดตั้งแอป")</li>
+    <li>แตะ <span class="k">เพิ่ม</span> — ไอคอนจะอยู่บนหน้าจอ แตะเมื่อไรก็เข้าระบบได้ทันที</li>
+  </ol>
+  <div class="note">ถ้าเคยเพิ่มไอคอนตัว "ร" สีเทาไว้ ให้กดค้างที่ไอคอนเดิมแล้วลบออกก่อน</div>
+  <a class="btn" id="openBtn" href="#">เข้าระบบตอนนี้ (ยังไม่ติดตั้ง)</a>
+</div>
+
+<div class="card hide" id="bad"><div class="err">ลิงก์ไม่ถูกต้อง โปรดเปิดจากปุ่ม "ติดตั้งไอคอน" ในหน้าเช็คอิน หรือติดต่อเลขาหลักสูตร</div></div>
+<div class="muted">หน้านี้ไม่เก็บข้อมูลใดๆ — ข้อมูลทั้งหมดอยู่ในระบบของวิทยาลัย</div>
+
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  var u = q.get('u') || '', t = q.get('t') || '', admin = q.get('a') === '1', setup = q.get('setup') === '1';
+  function $(id){ return document.getElementById(id); }
+  // รับเฉพาะ URL เว็บแอปของ Google Apps Script และโทเคนรูปแบบของระบบ (กันลิงก์ถูกนำไปใช้พาไปเว็บอื่น)
+  var okUrl = /^https:\/\/script\.google\.com\/(a\/[^\/?#]+\/)?macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u);
+  var okTok = /^[A-Za-z0-9]{20,64}$/.test(t);
+  if (admin) {
+    document.title = 'รายงานเช็คอิน';
+    document.querySelector('meta[name=apple-mobile-web-app-title]').setAttribute('content', 'รายงานเช็คอิน');
+    $('ati').href = 'icon-admin-180.png'; $('fav').href = 'icon-admin-192.png'; $('logo').src = 'icon-admin-180.png';
+    $('ttl').textContent = 'รายงานการปฏิบัติงานสอน';
+  }
+  if (!okUrl || !okTok) { $('go').classList.add('hide'); $('bad').classList.remove('hide'); return; }
+  var target = u + '?t=' + encodeURIComponent(t);
+  $('goBtn').href = target; $('openBtn').href = target;
+  if (!setup) { location.replace(target); return; }
+
+  // โหมดติดตั้ง: ลบ setup=1 ออกจาก URL ก่อน เพื่อให้ไอคอนที่เพิ่มลงหน้าจอเปิดระบบได้ทันที
+  q.delete('setup');
+  history.replaceState(null, '', location.pathname + '?' + q.toString());
+  $('go').classList.add('hide'); $('setup').classList.remove('hide');
+  var ua = navigator.userAgent;
+  var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  $(ios ? 'ios' : 'android').classList.remove('hide');
+  if (/Line\/|FBAN|FBAV|FB_IAB|Messenger|Instagram/i.test(ua)) $('inApp').classList.remove('hide');
+})();
+</script>
+</body>
+</html>
